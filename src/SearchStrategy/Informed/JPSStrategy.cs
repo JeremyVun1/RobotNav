@@ -47,7 +47,7 @@ namespace RobotNav
 
 		public override bool Update()
 		{
-			//error checking
+			//guards
 			if (!base.Update())
 				return false;
 			if (openSet.Count() == 0)
@@ -55,7 +55,7 @@ namespace RobotNav
 
 			sw.Start();
 
-
+			//algorithm start
 			while (openSet.Count() != 0)
 			{
 				Point node = GetBestNode(openSet);
@@ -65,19 +65,21 @@ namespace RobotNav
 				if (CheckIfGoal(node))
 					return true;
 
+				//get adjacents/successors of the node
 				List<Point> adj = PrunedNeighbours(node);
 				Point jp = new Point(0, 0);
 				for (int i = 0; i < adj.Count(); i++)
 				{
 					stepCount = 0;
+
+					//scan for a jump point in the direction of node -> adjacent[i]
 					jp = Scan(node, adj[i]);
 					if (jp.X == -1 || closedSet[jp])
 						continue;
-					else
-						openSet.Add(jp);
+					else openSet.Add(jp);
 
+					//set f, g, h costs of our jump points. Where h is difference between f map and g map.
 					int g = gMap[node] + ManhattanDist(jp, node);
-
 					if (g < gMap[jp] || gMap[jp] == 0)
 					{
 						gMap[jp] = g;
@@ -85,7 +87,7 @@ namespace RobotNav
 						parent[jp] = node;
 					}
 
-					//draw screen during recursion
+					//draw gui during loop
 					sw.Stop();
 					SwinGame.ClearScreen(Color.Black);
 					Draw();
@@ -98,6 +100,7 @@ namespace RobotNav
 			return false;
 		}
 
+		//recursive directional scan
 		private Point Scan(Point p, Point c)
 		{
 			int dx = c.X - p.X;
@@ -112,8 +115,8 @@ namespace RobotNav
 			if (fMap[c] == -1 || c.X < 0 || c.X == fMap.Width || c.Y < 0 || c.Y == fMap.Height)
 				return new Point(-1, -1);
 			
-			//forced neighbour checks
-			//horizontal check
+			//forced neighbour case checks
+			//horizontal direction forced neighbours
 			if (dx != 0)
 			{
 				if (fMap[c.X, c.Y - 1] != -1 && fMap[c.X-dx, c.Y-1] == -1 ||
@@ -122,7 +125,7 @@ namespace RobotNav
 					return c;
 				}
 			}
-			//vertical check
+			//vertical direction forced neighbours
 			else if (dy != 0)
 			{
 				if (fMap[c.X-1, c.Y] != -1 && fMap[c.X-1, c.Y-dy] == -1 ||
@@ -140,6 +143,7 @@ namespace RobotNav
 			return Scan(c, new Point(c.X + dx, c.Y + dy));
 		}
 
+		//return list of neighbours in the direction that we are coming from
 		private List<Point> PrunedNeighbours(Point x)
 		{
 			List<Point> result = new List<Point>();
@@ -192,6 +196,7 @@ namespace RobotNav
 			return result;
 		}
 
+		//check if our point is a goal state
 		private bool CheckIfGoal(Point p)
 		{
 			foreach (Point g in fMap.Goals)
@@ -212,6 +217,7 @@ namespace RobotNav
 			return false;
 		}
 
+		//get node with lowest f value from the list
 		private Point GetBestNode(List<Point> list)
 		{
 			Point lowPoint = list[0];
@@ -242,6 +248,7 @@ namespace RobotNav
 			return lowPoint;
 		}
 
+		//build path by unrolling parents
 		private void BuildPath(Point c)
 		{
 			Path.Clear();
@@ -256,6 +263,7 @@ namespace RobotNav
 			}
 		}
 
+		//lowest manhattan dist to set of points (multiple active goals)
 		private int ManhattanDist(Point a, List<Point> b)
 		{
 			//find manhattan dist to closest goal
@@ -269,11 +277,13 @@ namespace RobotNav
 			return mDist;
 		}
 
+		//manhattan dist between two points
 		private int ManhattanDist(Point a, Point b)
 		{
 			return (Math.Abs(a.Y - b.Y) + Math.Abs(a.X - b.X));
 		}
 
+		//GUI DRAWS
 		protected override void DrawPath()
 		{
 			if (DebugMode.Path)

@@ -29,15 +29,15 @@ namespace RobotNav
 
 		public override bool Update()
 		{
+			//guards
 			if (!base.Update())
 				return false;
-
 			if (stack.Count == 0)
 				return false;
 
 			sw.Start();
 
-			//Start DFS
+			//Start algorithm
 			while (stack.Count() != 0)
 			{
 				Point p = stack.Peek();
@@ -71,7 +71,7 @@ namespace RobotNav
 					stepCount++;
 					validAdjFound = true;
 
-					//draw screen during recursion
+					//draw gui during loop
 					sw.Stop();
 					SwinGame.ClearScreen(Color.Black);
 					Draw();
@@ -87,6 +87,7 @@ namespace RobotNav
 			return false;
 		}
 
+		//GUI DRAWS
 		public override void Draw()
 		{
 			if (!DebugMode.Draw)
@@ -107,9 +108,7 @@ namespace RobotNav
 			{
 				List<Point> path = stack.ToList();
 				for (int i = 0; i < path.Count(); i++)
-				{
 					DrawGridBox(path[i], Color.LightBlue, 1);
-				}
 			}
 		}
 	}

@@ -31,14 +31,15 @@ namespace RobotNav
 
 		public override bool Update()
 		{
+			//guards
 			if (!base.Update())
 				return false;
-
 			if (openSet.Count() == 0)
 				return false;
 
 			sw.Start();
 
+			//start algorithm
 			while (openSet.Count() != 0)
 			{
 				stepCount++;
@@ -55,7 +56,7 @@ namespace RobotNav
 					}
 				}
 
-				//close and remove
+				//close and remove chosen node
 				openSet.Remove(lowPoint);
 
 				//explore adjacents
@@ -81,22 +82,37 @@ namespace RobotNav
 						}
 					}
 
+					//calculate heuristic and add to open set
 					fMap[a] = ManhattanDist(a);
 					openSet.Add(a);
 				}
 
-				//draw screen during recursion
+				//draw GUI during loop
 				sw.Stop();
 				SwinGame.ClearScreen(Color.Black);
 				Draw();
 				SwinGame.RefreshScreen();
-
 				sw.Start();
 			}
 			sw.Stop();
 			return false;
 		}
 
+		//lowest manhattan dist to set of points (multiple active goals)
+		private int ManhattanDist(Point a)
+		{
+			//find manhattan dist to closest goal
+			int mDist = (Math.Abs(a.Y - fMap.Goals[0].Y) + Math.Abs(a.X - fMap.Goals[0].X));
+			for (int i = 1; i < fMap.Goals.Count(); i++)
+			{
+				int mDist2 = (Math.Abs(a.Y - fMap.Goals[i].Y) + Math.Abs(a.X - fMap.Goals[i].X));
+				mDist = mDist2 < mDist ? mDist2 : mDist;
+			}
+
+			return mDist;
+		}
+
+		//return best path to goal by unrolling parents
 		private void BuildPath(Point c)
 		{
 			Path.Clear();
@@ -111,19 +127,7 @@ namespace RobotNav
 			}
 		}
 
-		private int ManhattanDist(Point a)
-		{
-			//find manhattan dist to closest goal
-			int mDist = (Math.Abs(a.Y - fMap.Goals[0].Y) + Math.Abs(a.X - fMap.Goals[0].X));
-			for (int i = 1; i < fMap.Goals.Count(); i++)
-			{
-				int mDist2 = (Math.Abs(a.Y - fMap.Goals[i].Y) + Math.Abs(a.X - fMap.Goals[i].X));
-				mDist = mDist2 < mDist ? mDist2 : mDist;
-			}
-
-			return mDist;
-		}
-
+		//GUI DRAWS
 		public override void Draw()
 		{
 			if (!DebugMode.Draw)
@@ -136,6 +140,8 @@ namespace RobotNav
 			DrawStartGoals();
 			DrawGridScores();
 			DrawUI();
+
+			DrawAllParents();
 		}
 
 		private void DrawOpenSet()
@@ -143,6 +149,17 @@ namespace RobotNav
 			for (int i = 0; i < openSet.Count(); i++)
 			{
 				DrawGridBox(openSet[i], Color.LightBlue, 1);
+			}
+		}
+
+		private void DrawAllParents()
+		{
+			foreach (KeyValuePair<Point, Point> pair in parent)
+			{
+				Point child = pair.Key;
+				Point parent = pair.Value;
+				//draw line direction
+				SwinGame.DrawLine(Color.Red, child.X * gridW + gridW / 2, child.Y * gridH + gridH / 2, parent.X * gridW + gridW / 2, parent.Y * gridH + gridH / 2);
 			}
 		}
 	}

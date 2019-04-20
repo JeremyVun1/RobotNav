@@ -15,6 +15,7 @@ namespace RobotNav
 		public string Filename { get; set; }
 		public string Method { get; set; }
 		private string popSize, mutRate, fitMulti, diversity, elite;
+		private int PathSize;
 
 		public RobotNav(string[] args)
 		{
@@ -65,6 +66,8 @@ namespace RobotNav
 				searchStrategy.Start();
 				forceStart = false;
 			}
+
+			PathSize = 0;
 		}
 
 		public void Run()
@@ -86,7 +89,7 @@ namespace RobotNav
 
 		public void PrintOutput()
 		{
-			Console.WriteLine("{0} {1} {2}", Filename, Method, searchStrategy.fMap.Width * searchStrategy.fMap.Height);
+			Console.WriteLine("{0} {1} {2}", Filename, Method, searchStrategy.PathSizeOutput);
 			Console.WriteLine(searchStrategy.PathString);
 		}
 

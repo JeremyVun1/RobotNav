@@ -20,6 +20,8 @@ namespace RobotNav
 		public List<MoveDir> BestDNA { get; private set; }
 		private double bestDNAFitness;
 
+		public override int PathSizeOutput { get { return bestPathFound.Count() - 1; } }
+
 		public bool ValueDiversity { get; set; }
 		public bool Elite { get; set; }
 
@@ -91,30 +93,27 @@ namespace RobotNav
 
 		public override bool Update()
 		{
+			//guards
 			if (fMap == null)
 				return false;
-
 			if (finished)
 			{
 				finished = false;
 				return true;
 			}
-
 			if (!started || paused)
 				return false;
 
 			sw.Start();
+			//algorithm start
 
-			//score generation. Lower scores are better to select shorter paths
-			//score = fitness + diversity
+			//get dna average length of the generation
 			int dnaAvgLength = 0;
 			for (int i = 0; i < generation.Count(); i++)
-			{
 				dnaAvgLength += generation[i].DNALength;
-			}
 			dnaAvgLength = dnaAvgLength / n;
 
-			//score candidates on fitness
+			//score fitness of candidates
 			double fitnessAvg = 0.0;
 			List<ScoreCard> scores = new List<ScoreCard>();
 			for (int i = 0; i < generation.Count(); i++)
@@ -136,10 +135,8 @@ namespace RobotNav
 			//and add diversity score to the candidates scorecard
 			if (ValueDiversity)
 			{
-				//dnaPool.Clear();
 				for (int i = 0; i < n; i++)
 				{
-					//double scale = scores[i].Score / 100;
 					double dScore = Diversity(generation[i].Dna, dnaPool, fitnessAvg);
 					scores[i].AddScore(dScore);
 				}
@@ -151,7 +148,7 @@ namespace RobotNav
 				SelectParents(scores);
 			}
 
-			//create next generation candidates
+			//create next generation of candidates
 			for (int i = 0; i < n; i++)
 			{
 				Individual child = new Individual(fMap.Start);
@@ -164,13 +161,14 @@ namespace RobotNav
 					child.Move(dnaPool[j].GetDNA(rng, m), fMap);
 				}
 
-				//if we still aren't at the goal, fill out with random moves
+				//if child still hasn't reachted the goal, fill out dna with random moves until it does
 				while (!CheckIfGoal(child.Pos))
 					child.Move((MoveDir)rng.Next(0, 4), fMap);
 
 				generation[i] = child;
 			}
 
+			//increment generation counter
 			generations++;
 
 			sw.Stop();
@@ -208,9 +206,9 @@ namespace RobotNav
 			}
 		}
 
+		//fitness function. Dna lengths that are better than average score exponentially better
 		private double Fitness(int dnaLength, int dnaAvgLength)
-		{
-			//dna lengths that are better than average score exponentially better
+		{			
 			double result = (double)dnaAvgLength / (double)dnaLength;
 			return Math.Pow(result, fitnessMulti);
 		}
@@ -234,6 +232,7 @@ namespace RobotNav
 			return Math.Pow(scale * d, fitnessMulti);
 		}
 
+		//goal check
 		private bool CheckIfGoal(Point p)
 		{
 			foreach (Point g in fMap.Goals)
@@ -244,6 +243,7 @@ namespace RobotNav
 			return false;
 		}
 
+		//GUI DRAWS
 		public override void Draw()
 		{
 			if (!DebugMode.Draw)

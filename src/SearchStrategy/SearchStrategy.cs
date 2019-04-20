@@ -15,6 +15,7 @@ namespace RobotNav
 
 		protected Dictionary<Point, bool> closedSet;
 		public List<Point> Path { get; private set; }
+		public virtual int PathSizeOutput { get { return pathSize; } }
 		protected bool paused;
 		public int gridW { get; private set; }
 		public int gridH { get; private set; }
@@ -224,6 +225,10 @@ namespace RobotNav
 				for (int i = 0; i < Path.Count(); i++)
 				{
 					DrawGridBox(Path[i], Color.LightGreen, 1);
+
+					//draw parent lines
+					if (i > 0)
+						SwinGame.DrawLine(Color.Red, Path[i].X * gridW + gridW / 2, Path[i].Y * gridH + gridH / 2, Path[i - 1].X * gridW + gridW / 2, Path[i - 1].Y * gridH + gridH / 2);
 				}
 			}
 		}

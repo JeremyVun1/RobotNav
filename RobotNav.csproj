@@ -60,7 +60,7 @@
     <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyLibsToOut</PrepareForRunDependsOn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="src\SearchStrategy\Informed\ASBBFSStrategy.cs" />
+    <Compile Include="src\SearchStrategy\Informed\ASFSStrategy.cs" />
     <Compile Include="src\SearchStrategy\Informed\ASStrategy.cs" />
     <Compile Include="src\SearchStrategy\Informed\JPSStrategy.cs" />
     <Compile Include="src\SearchStrategy\Uninformed\BFSStrategy.cs" />

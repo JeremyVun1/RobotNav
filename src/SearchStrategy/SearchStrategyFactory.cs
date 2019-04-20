@@ -23,7 +23,7 @@ namespace RobotNav
 				case "AS":
 					return new ASStrategy(MapFactory.CreateFMap(filename), MapFactory.CreateFMap(filename), "A*");
 				case "ASFS":
-					return new ASBBFSStrategy(MapFactory.CreateFMap(filename), MapFactory.CreateFMap(filename), "A* Fast Stack");
+					return new ASFSStrategy(MapFactory.CreateFMap(filename), MapFactory.CreateFMap(filename), "A* Fast Stack");
 				case "CUS1":
 				case "GA":
 					return new GAStrategy(MapFactory.CreateFMap(filename), "Genetic Algorithm", opts);

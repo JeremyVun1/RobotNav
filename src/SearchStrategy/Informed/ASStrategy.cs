@@ -33,14 +33,15 @@ namespace RobotNav
 
 		public override bool Update()
 		{
+			//guards
 			if (!base.Update())
 				return false;
-
 			if (openSet.Count() == 0)
 				return false;
 
 			sw.Start();
 
+			//start algorithm
 			while (openSet.Count() != 0)
 			{
 				//find best node in open set
@@ -80,7 +81,7 @@ namespace RobotNav
 					}
 				}
 
-				//not goal, keep exploring adjacents
+				//not goal, keep exploring adjacents/successors
 				openSet.Remove(lowPoint);
 				List<Point> adj = fMap.Adjacent(lowPoint);
 				foreach (Point a in adj)
@@ -100,21 +101,20 @@ namespace RobotNav
 					parent.Add(a, lowPoint);
 				}
 
-				//draw screen during recursion
+				//draw to the screen during loop
 				sw.Stop();
 				SwinGame.ClearScreen(Color.Black);
 				Draw();
 				SwinGame.RefreshScreen();
 				sw.Start();
-				//return false;
 			}
 			sw.Stop();
 			return false;
 		}
 
+		//lowest manhattan dist to set of points (multiple active goals)
 		private int ManhattanDist(Point a, List<Point> b)
 		{
-			//find manhattan dist to closest goal
 			int mDist = (Math.Abs(a.Y - b[0].Y) + Math.Abs(a.X - b[0].X));
 			for (int i = 1; i < b.Count(); i++)
 			{
@@ -125,11 +125,13 @@ namespace RobotNav
 			return mDist;
 		}
 
+		//manhattan dist between two points
 		private int ManhattanDist(Point a, Point b)
 		{
 			return (Math.Abs(a.Y - b.Y) + Math.Abs(a.X - b.X));
 		}
 
+		//return best path to goal by unrolling parents
 		private void BuildPath(Point c)
 		{
 			Path.Clear();
@@ -144,6 +146,7 @@ namespace RobotNav
 			}
 		}
 
+		//GUI DRAWS
 		public override void Draw()
 		{
 			if (!DebugMode.Draw)
@@ -155,8 +158,10 @@ namespace RobotNav
 			DrawPath();
 			DrawStartGoals();
 			DrawGridScores();
-			//DrawGCost();
+
 			DrawUI();
+
+			DrawAllParents();
 		}
 
 		private void DrawOpenSet()
@@ -167,18 +172,14 @@ namespace RobotNav
 			}
 		}
 
-		private void GCost()
+		private void DrawAllParents()
 		{
-			if (!DebugMode.MoveCost)
-				return;
-
-			for (int i = 0; i < gMap.Width; i++)
+			foreach (KeyValuePair<Point, Point> pair in parent)
 			{
-				for (int j = 0; j < gMap.Height; j++)
-				{
-					if (gMap[i][j] != 0)
-						SwinGame.DrawText(gMap[i][j].ToString(), Color.Black, i * gridW + gridW / 2, j * gridH + gridH / 2);
-				}
+				Point child = pair.Key;
+				Point parent = pair.Value;
+				//draw line direction
+				SwinGame.DrawLine(Color.Red, child.X * gridW + gridW / 2, child.Y * gridH + gridH / 2, parent.X * gridW + gridW / 2, parent.Y * gridH + gridH / 2);
 			}
 		}
 	}

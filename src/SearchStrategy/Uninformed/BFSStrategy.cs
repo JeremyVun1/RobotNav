@@ -22,35 +22,36 @@ namespace RobotNav
 
 		public override bool Update()
 		{
+			//guards
 			if (!base.Update())
 				return false;
-
 			if (openSet.Count == 0)
 				return false;
 
-			//do work if things in open set
+			sw.Start();
+
+			//start algorithm
 			while (openSet.Count() != 0)
 			{
 				List<Point> nextSet = new List<Point>();
 				for (int i = 0; i < openSet.Count(); i++)
 				{
-					sw.Start();
 					Point p = openSet[i];
+
+					//expand and get successors
 					List<Point> adj = fMap.Adjacent(p);
-					
 					foreach (Point a in adj)
 					{
 						if (closedSet[a])
 							continue;
 
-						parent.Add(a, p);
-						closedSet[a] = true;
-						nextSet.Add(a);
+						parent.Add(a, p); //add parent
+						closedSet[a] = true; //add to closed set
+						nextSet.Add(a); //add to next frontier
+						
+						fMap[a] = fMap[p]+1; //record g cost
 
-						//record g cost
-						fMap[a] = fMap[p]+1;
-
-						//check goal
+						//goal check
 						if (CheckIfGoal(a))
 						{
 							sw.Stop();
@@ -63,7 +64,7 @@ namespace RobotNav
 				openSet = nextSet;
 				stepCount++;
 
-				//draw screen during recursion
+				//draw screen during loop
 				sw.Stop();
 				SwinGame.ClearScreen(Color.Black);
 				Draw();
@@ -74,6 +75,7 @@ namespace RobotNav
 			return false;
 		}
 
+		//goal check
 		private bool CheckIfGoal(Point a)
 		{
 			foreach (Point g in fMap.Goals)
@@ -87,6 +89,7 @@ namespace RobotNav
 			return false;
 		}
 
+		//build path by unrolling parents
 		private void BuildPath(Point c)
 		{
 			Path.Clear();
@@ -111,6 +114,7 @@ namespace RobotNav
 			}
 		}
 
+		//GUI DRAWS
 		public override void Draw()
 		{
 			if (!DebugMode.Draw)
@@ -123,6 +127,8 @@ namespace RobotNav
 			DrawStartGoals();
 			DrawGridScores();
 			DrawUI();
+
+			DrawAllParents();
 		}
 
 		private void DrawOpenSet()
@@ -130,6 +136,17 @@ namespace RobotNav
 			for (int i = 0; i < openSet.Count(); i++)
 			{
 				DrawGridBox(openSet[i], Color.LightBlue, 1);
+			}
+		}
+
+		private void DrawAllParents()
+		{
+			foreach(KeyValuePair<Point, Point> pair in parent)
+			{
+				Point child = pair.Key;
+				Point parent = pair.Value;
+				//draw line direction
+				SwinGame.DrawLine(Color.Red, child.X * gridW + gridW / 2, child.Y * gridH + gridH / 2, parent.X * gridW + gridW / 2, parent.Y * gridH + gridH / 2);
 			}
 		}
 	}
