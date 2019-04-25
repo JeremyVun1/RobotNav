@@ -13,7 +13,6 @@ namespace RobotNav
 		private Dictionary<Point, Point> parent;
 		private FMap gMap;
 
-
 		public ASStrategy(FMap fMap, FMap gMap, string id) : base(fMap, id)
 		{
 			openSet = new List<Point>();
@@ -42,7 +41,7 @@ namespace RobotNav
 			sw.Start();
 
 			//start algorithm
-			while (openSet.Count() != 0)
+			if (openSet.Count() != 0)
 			{
 				//find best node in open set
 				stepCount++;
@@ -54,7 +53,8 @@ namespace RobotNav
 					if (lowPoint.Equals(g))
 					{
 						sw.Stop();
-						openSet.Clear();
+
+						FlushToClosedSet(openSet);
 						BuildPath(g);
 						return true;
 					}
@@ -77,15 +77,13 @@ namespace RobotNav
 					closedSet[a] = true;
 					parent.Add(a, lowPoint);
 				}
-
-				//draw to the screen during loop
-				sw.Stop();
-				SwinGame.ClearScreen(Color.Black);
-				Draw();
-				SwinGame.RefreshScreen();
-				sw.Start();
 			}
+
 			sw.Stop();
+
+			//search finished no solution
+			if (openSet.Count() == 0)
+				return true;
 			return false;
 		}
 

@@ -13,7 +13,7 @@ namespace RobotNav
 	{
 		private List<Point> openSet;
 		private Dictionary<Point, Point> parent;
-
+		
 		public BFSStrategy(FMap fMap, string id) : base(fMap, id)
 		{
 			openSet = new List<Point>();
@@ -31,7 +31,7 @@ namespace RobotNav
 			sw.Start();
 
 			//start algorithm
-			while (openSet.Count() != 0)
+			if (openSet.Count() != 0)
 			{
 				List<Point> nextSet = new List<Point>();
 				for (int i = 0; i < openSet.Count(); i++)
@@ -55,23 +55,21 @@ namespace RobotNav
 						if (CheckIfGoal(a))
 						{
 							sw.Stop();
-							openSet.Clear();
+
+							FlushToClosedSet(openSet);
 							return true;
 						}
 					}
-					sw.Stop();
 				}
 				openSet = nextSet;
 				stepCount++;
 
-				//draw screen during loop
-				sw.Stop();
-				SwinGame.ClearScreen(Color.Black);
-				Draw();
-				SwinGame.RefreshScreen();
-				sw.Start();
 			}
 			sw.Stop();
+
+			//search finished no solution
+			if (openSet.Count() == 0)
+				return true;
 			return false;
 		}
 

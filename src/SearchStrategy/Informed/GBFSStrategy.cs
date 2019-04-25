@@ -40,7 +40,7 @@ namespace RobotNav
 			sw.Start();
 
 			//start algorithm
-			while (openSet.Count() != 0)
+			if (openSet.Count() != 0)
 			{
 				stepCount++;
 				//find best node in open set
@@ -74,10 +74,12 @@ namespace RobotNav
 					{
 						if (a.Equals(g))
 						{
-							fMap[a] = 0;
-							openSet.Clear();
-							BuildPath(g);
 							sw.Stop();
+
+							fMap[a] = 0;
+
+							FlushToClosedSet(openSet);
+							BuildPath(g);
 							return true;
 						}
 					}
@@ -86,15 +88,13 @@ namespace RobotNav
 					fMap[a] = ManhattanDist(a);
 					openSet.Add(a);
 				}
-
-				//draw GUI during loop
-				sw.Stop();
-				SwinGame.ClearScreen(Color.Black);
-				Draw();
-				SwinGame.RefreshScreen();
-				sw.Start();
 			}
+
 			sw.Stop();
+
+			//search finished no solution
+			if (openSet.Count() == 0)
+				return true;
 			return false;
 		}
 

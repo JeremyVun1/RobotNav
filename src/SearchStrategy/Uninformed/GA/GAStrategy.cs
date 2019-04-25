@@ -13,21 +13,31 @@ namespace RobotNav
 		private Individual[] generation;
 		private Individual[] parents;
 		private List<MasterGene> dnaPool;
+
+		//basic options
 		private int popSize, generations, bestGeneration, fitnessMulti;
 		private double mutRate, bestTime;
-		private int deepCount; // iterative deepening
 
-		private List<Point> bestPathFound;
-		public List<MoveDir> BestDNA { get; private set; }
-
+		//modifier options
 		public bool ValueDiversity { get; set; }
 		public bool Elite { get; set; }
 		double BestDNAFitness;
 
-		public override int PathSizeOutput { get { return bestPathFound == null ? -1 : bestPathFound.Count() - 1; } }
+		// iterative deepening
+		private int deepCount;
+		private int deepeningInc;
 
+		//track global best solutions (inter-generational)
+		private List<Point> bestPathFound;
+		public List<MoveDir> BestDNA { get; private set; }
+
+		//console output
+		private UInt32 numberOfNodes;
+		public override UInt32 NumberOfNodes { get { return numberOfNodes; } }
+		private bool newBestFound;
 		protected override int pathSize {
 			get {
+				newBestFound = false;
 				Individual best = BestParent(parents);
 				if (best == null)
 					return bestPathFound == null ? -1 : bestPathFound.Count();
@@ -35,6 +45,7 @@ namespace RobotNav
 				int result = best.DNALength;
 				if (bestPathFound == null || bestPathFound.Count()-1 > result)
 				{
+					newBestFound = true;
 					bestPathFound = best.Path;
 					BestDNA = best.Dna;
 					bestTime = sw.Elapsed.TotalMilliseconds;
@@ -59,6 +70,7 @@ namespace RobotNav
 			ValueDiversity = opt.diversity; //whether we value candidate diversity or not
 			Elite = opt.elite; //Mix in the genes of the best path found when creating next generations
 			deepCount = 1;
+			deepeningInc = opt.deepeningInc;
 
 			parents = new Individual[Math.Max((int)(popSize*0.1),2)]; //parents as a fifth of the population
 			dnaPool = new List<MasterGene>(); //action counter for crossovers
@@ -77,6 +89,7 @@ namespace RobotNav
 		public override void Start()
 		{
 			base.Start();
+			numberOfNodes = 0;
 
 			//seed initial generation with random actions
 			//keep choosing random actions until we hit a goal point
@@ -90,9 +103,12 @@ namespace RobotNav
 				}
 			}
 
+			UpdateNumberOfNodes(generation);
+
 			generations = 0;
 			started = true;
 			finished = false;
+			newBestFound = false;
 		}
 
 		public override bool Update()
@@ -109,8 +125,8 @@ namespace RobotNav
 				return false;
 
 			sw.Start();
-			//algorithm start
 
+			//algorithm start
 			//get dna average length of the generation
 			int dnaAvgLength = AverageDnaLength(generation);
 
@@ -131,10 +147,14 @@ namespace RobotNav
 
 			//increment generation counter and iterative deepening counter
 			generations++;
-			deepCount = Math.Min(deepCount+1, 2147483647); // 32bit int max
+			deepCount = Math.Min(deepCount+deepeningInc, 2147483647); // 32bit int max
 
 			sw.Stop();
-			return false;
+
+			//tally up all nodes explored in generation
+			UpdateNumberOfNodes(generation);
+
+			return newBestFound;
 		}
 
 		private void SpawnCandidates()
@@ -306,6 +326,12 @@ namespace RobotNav
 			return false;
 		}
 
+		private void UpdateNumberOfNodes(Individual[] generation)
+		{
+			foreach(Individual i in generation)
+				numberOfNodes += (UInt32)i.DNALength;
+		}
+
 		//GUI DRAWS
 		public override void Draw()
 		{
@@ -389,6 +415,9 @@ namespace RobotNav
 			get
 			{
 				string result = "";
+
+				if (BestDNA.Count() == 0)
+					return "No solution found";
 				
 				for (int i=0; i<BestDNA.Count(); i++)
 				{
@@ -398,13 +427,13 @@ namespace RobotNav
 							result += "Up; ";
 							break;
 						case MoveDir.W:
-							result += "West; ";
+							result += "Left; ";
 							break;
 						case MoveDir.S:
-							result += "South; ";
+							result += "Down; ";
 							break;
 						case MoveDir.E:
-							result += "East; ";
+							result += "Right; ";
 							break;
 					}
 				}

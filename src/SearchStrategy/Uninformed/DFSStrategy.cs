@@ -10,7 +10,7 @@ namespace RobotNav
 	public class DFSStrategy : SearchStrategy
 	{
 		private Stack<Point> stack;
-		bool validAdjFound;
+		private bool validAdjFound;
 
 		public DFSStrategy(FMap fMap, string id) : base(fMap, id)
 		{
@@ -38,7 +38,7 @@ namespace RobotNav
 			sw.Start();
 
 			//Start algorithm
-			while (stack.Count() != 0)
+			if (stack.Count() != 0)
 			{
 				Point p = stack.Peek();
 				List<Point> adj = fMap.Adjacent(p);
@@ -61,7 +61,10 @@ namespace RobotNav
 						{
 							//flush stack
 							while (stack.Count() != 0)
+							{
+								closedSet[stack.Peek()] = true;
 								Path.Add(stack.Pop());
+							}
 
 							sw.Stop();
 							stepCount++;
@@ -71,19 +74,17 @@ namespace RobotNav
 					stepCount++;
 					validAdjFound = true;
 
-					//draw gui during loop
-					sw.Stop();
-					SwinGame.ClearScreen(Color.Black);
-					Draw();
-					SwinGame.RefreshScreen();
-					sw.Start();
-
 					break;
 				}
 				if (!validAdjFound)
 					stack.Pop();
 			}
+
 			sw.Stop();
+
+			//search finished no solution
+			if (stack.Count() == 0)
+				return true;
 			return false;
 		}
 

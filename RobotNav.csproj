@@ -103,6 +103,9 @@
     <WinLibs Include="lib\win32\*.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="data\blocked.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="data\largew.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

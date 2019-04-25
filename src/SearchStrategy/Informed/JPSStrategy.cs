@@ -19,7 +19,8 @@ namespace RobotNav
 			{
 				if (Path.Count() == 0)
 					return -1;
-				return gMap[Path[0]];
+
+				return gMap[Path.Last()];
 			}
 		}
 
@@ -48,7 +49,7 @@ namespace RobotNav
 		public override bool Update()
 		{
 			//guards
-			if (!base.Update())
+			 if (!base.Update())
 				return false;
 			if (openSet.Count() == 0)
 				return false;
@@ -56,7 +57,7 @@ namespace RobotNav
 			sw.Start();
 
 			//algorithm start
-			while (openSet.Count() != 0)
+			if (openSet.Count() != 0)
 			{
 				Point node = GetBestNode(openSet);
 				closedSet[node] = true;
@@ -70,8 +71,6 @@ namespace RobotNav
 				Point jp = new Point(0, 0);
 				for (int i = 0; i < adj.Count(); i++)
 				{
-					stepCount = 0;
-
 					//scan for a jump point in the direction of node -> adjacent[i]
 					jp = Scan(node, adj[i]);
 					if (jp.X == -1 || closedSet[jp])
@@ -86,17 +85,14 @@ namespace RobotNav
 						fMap[jp] = g + ManhattanDist(jp, fMap.Goals); //f = g + h
 						parent[jp] = node;
 					}
-
-					//draw gui during loop
-					sw.Stop();
-					SwinGame.ClearScreen(Color.Black);
-					Draw();
-					DrawGridBox(jp, Color.Pink);
-					SwinGame.RefreshScreen();
-					sw.Start();
 				}
 			}
+
 			sw.Stop();
+
+			//search finished no solution
+			if (openSet.Count() == 0)
+				return true;
 			return false;
 		}
 

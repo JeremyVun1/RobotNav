@@ -91,7 +91,7 @@ namespace RobotNav
 
 		public void PrintOutput()
 		{
-			Console.WriteLine("{0} {1} {2}", Filename, Method, searchStrategy.PathSizeOutput);
+			Console.WriteLine("{0} {1} {2}", Filename, Method, searchStrategy.NumberOfNodes);
 			Console.WriteLine(searchStrategy.PathString);
 		}
 

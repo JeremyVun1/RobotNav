@@ -14,7 +14,11 @@ namespace RobotNav
 		protected string id;
 		protected Dictionary<Point, bool> closedSet;
 		public List<Point> Path { get; private set; }
-		public virtual int PathSizeOutput { get { return pathSize; } }
+
+		public virtual UInt32 NumberOfNodes {
+			get { return (UInt32)(closedSet.Where(x => x.Value == true).Count()); }
+		}
+
 		protected bool paused;
 		public int gridW { get; private set; }
 		public int gridH { get; private set; }
@@ -27,7 +31,7 @@ namespace RobotNav
 				string result = "";
 
 				if (Path.Count() == 0)
-					return result;
+					return "No solution found";
 
 				Path.Reverse();
 				Point last = Path[0];
@@ -48,40 +52,44 @@ namespace RobotNav
 					if (dx < 0)
 					{
 						int n = Math.Abs(dx);
-						result += "Left";
-						if (n > 1)
-							result += " " + n;
-						result += "; ";
+						do
+						{
+							result += "Left; ";
+							n--;
+						} while (n > 0);
 						last = curr;
 						continue;
 					}
 					else if (dx > 0)
 					{
 						int n = Math.Abs(dx);
-						result += "Right";
-						if (n > 1)
-							result += " " + n;
-						result += "; ";
+						do
+						{
+							result += "Right; ";
+							n--;
+						} while (n > 0);
 						last = curr;
 						continue;
 					}
 					else if (dy < 0)
 					{
 						int n = Math.Abs(dy);
-						result += "Up";
-						if (n > 1)
-							result += " " + n;
-						result += "; ";
+						do
+						{
+							result += "Up; ";
+							n--;
+						} while (n > 0);
 						last = curr;
 						continue;
 					}
 					else if (dy > 0)
 					{
 						int n = Math.Abs(dy);
-						result += "Down";
-						if (n > 1)
-							result += " " + n;
-						result += "; ";
+						do
+						{
+							result += "Down; ";
+							n--;
+						} while (n > 0);
 						last = curr;
 						continue;
 					}
@@ -123,8 +131,6 @@ namespace RobotNav
 			gridW = gridH = gridW < gridH ? gridW : gridH;
 
 			sw = new Stopwatch();
-			sw.Start();
-			sw.Stop();
 			sw.Reset();
 		}
 
@@ -133,6 +139,14 @@ namespace RobotNav
 			if (fMap == null || paused)
 				return false;
 			return true;
+		}
+
+		protected void FlushToClosedSet(List<Point> list)
+		{
+			foreach(Point p in list)
+				closedSet[p] = true;
+
+			list.Clear();
 		}
 
 		public void PrintMap()

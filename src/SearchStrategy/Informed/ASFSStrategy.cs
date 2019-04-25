@@ -44,7 +44,7 @@ namespace RobotNav
 			sw.Start();
 
 			//algo start
-			while (openSet.Count() != 0 || fastStack.Count() != 0)
+			if (openSet.Count() != 0 || fastStack.Count() != 0)
 			{
 				stepCount++;
 				Point lowPoint;
@@ -60,8 +60,9 @@ namespace RobotNav
 					if (lowPoint.Equals(g))
 					{
 						sw.Stop();
-						openSet.Clear();
-						fastStack.Clear();
+
+						FlushToClosedSet(openSet);
+						FlushToClosedSet(fastStack);
 						BuildPath(g);
 						return true;
 					}
@@ -87,15 +88,12 @@ namespace RobotNav
 					closedSet[a] = true;
 					parent.Add(a, lowPoint);
 				}
-
-				//draw to the screen during loop
-				sw.Stop();
-				SwinGame.ClearScreen(Color.Black);
-				Draw();
-				SwinGame.RefreshScreen();
-				sw.Start();
 			}
+
 			sw.Stop();
+			//search finished no solution
+			if (openSet.Count() == 0 && fastStack.Count() == 0)	
+				return true;
 			return false;
 		}
 
