@@ -8,11 +8,11 @@ namespace RobotNav
 {
 	public static class SearchStrategyFactory
 	{
-		public static SearchStrategy Create(string filename, string method, string popSize, string mutRate, string fitMulti, string diversity, string elite)
+		public static SearchStrategy Create(string filename, string method, string popSize, string mutRate, string fitMulti, string diversity, string elite, string deepeningInc)
 		{
 			method = method.ToUpper();
 
-			GAOpts opts = new GAOpts(popSize, mutRate, fitMulti, diversity, elite);
+			GAOpts opts = new GAOpts(popSize, mutRate, fitMulti, diversity, elite, deepeningInc);
 
 			switch (method)
 			{

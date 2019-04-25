@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RobotNav.GA
 {
-	public enum MoveDir { N = 0, W = 1, S = 2, E = 3 }
+	public enum MoveDir { N = 0, W = 1, S = 2, E = 3}
 
 	public class MasterGene
 	{

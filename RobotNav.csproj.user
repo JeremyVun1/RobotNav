@@ -12,6 +12,6 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-Windows|x86'">
-    <StartArguments>G:\SwinGit\IntroToAI\ass1\data\testdata.txt</StartArguments>
+    <StartArguments>C:\Users\elode\Desktop\robotnav\RobotNav\data\largenw.txt</StartArguments>
   </PropertyGroup>
 </Project>

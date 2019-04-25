@@ -8,11 +8,11 @@ namespace RobotNav
 {
 	public struct GAOpts
 	{
-		public int popSize, fitMulti;
+		public int popSize, fitMulti, deepeningInc;
 		public double mutRate;
 		public bool diversity, elite;
 
-		public GAOpts(string popSize, string mutRate, string fitMulti, string diversity, string elite)
+		public GAOpts(string popSize, string mutRate, string fitMulti, string diversity, string elite, string deepeningInc)
 		{
 			if (!int.TryParse(popSize, out this.popSize))
 				this.popSize = 20;
@@ -29,7 +29,10 @@ namespace RobotNav
 
 			if (elite != null && elite.ToLower() == "true")
 				this.elite = true;
-			else this.elite = false;
+			else this.elite = true;
+
+			if (!int.TryParse(deepeningInc, out this.deepeningInc))
+				this.deepeningInc = 1;
 		}
 	}
 }

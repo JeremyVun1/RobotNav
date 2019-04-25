@@ -71,17 +71,13 @@ namespace RobotNav
 				List<Point> adj = fMap.Adjacent(lowPoint);
 				foreach (Point a in adj)
 				{
-					//update g scores if better g score is found
-					if (gMap[a] > gMap[lowPoint] + 1)
-						gMap[a] = gMap[lowPoint] + 1;
+					//f = g + h;
+					//update g scores if found better path the neighbour
+					if (gMap[a] > gMap[lowPoint] + 1 || gMap[a] == 0)
+						ScoreNode(a, gMap[lowPoint] + 1);
 
-					//check redundancies
 					if (closedSet[a])
 						continue;
-
-					//f = g + h;
-					gMap[a] = gMap[lowPoint] + 1;
-					fMap[a] = gMap[a] + ManhattanDist(a, fMap.Goals);
 
 					//fast stacking
 					if (fMap[a] <= fMap[lowPoint])
@@ -103,6 +99,12 @@ namespace RobotNav
 			return false;
 		}
 
+		private void ScoreNode(Point a, int gCost)
+		{
+			gMap[a] = gCost;
+			fMap[a] = gCost + ManhattanDist(a, fMap.Goals);
+		}
+
 		//get node with lowest f value from the list
 		private Point GetBestNode(List<Point> list)
 		{
@@ -119,9 +121,10 @@ namespace RobotNav
 				}
 
 				//if two nodes have same f cost, choose the one with lowest h cost
+				//preference relianility of higher g costs
 				if (lowDist == lowDist2)
 				{
-					if ((fMap[lowPoint] - gMap[lowPoint]) > (fMap[lowPoint2] - gMap[lowPoint2]))
+					if ((fMap[lowPoint] - gMap[lowPoint]) < (fMap[lowPoint2] - gMap[lowPoint2]))
 					{
 						lowPoint = lowPoint2;
 					}
@@ -196,6 +199,7 @@ namespace RobotNav
 				DrawGridBox(fastStack[i], Color.DeepSkyBlue, 1);
 			}
 
+			SwinGame.DrawText("OpenSet: " + openSet.Count(), Color.White, 20, SwinGame.ScreenHeight() - 35);
 			SwinGame.DrawText("FastStack: " + fastStack.Count(), Color.White, 20, SwinGame.ScreenHeight() - 20);
 		}
 

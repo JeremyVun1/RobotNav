@@ -14,7 +14,7 @@ namespace RobotNav
 		private bool exit, forceStart;
 		public string Filename { get; set; }
 		public string Method { get; set; }
-		private string popSize, mutRate, fitMulti, diversity, elite;
+		private string popSize, mutRate, fitMulti, diversity, elite, deepeningInc;
 		private int PathSize;
 
 		public RobotNav(string[] args)
@@ -49,13 +49,15 @@ namespace RobotNav
 				diversity = args[5];
 			if (args.Length >= 7)
 				elite = args[6];
+			if (args.Length >= 8)
+				deepeningInc = args[7];
 
 			Init();
 		}
 
 		public void Init()
 		{
-			searchStrategy = SearchStrategyFactory.Create(Filename, Method, popSize, mutRate, fitMulti, diversity, elite);
+			searchStrategy = SearchStrategyFactory.Create(Filename, Method, popSize, mutRate, fitMulti, diversity, elite, deepeningInc);
 			inputHandler = new InputHandler(searchStrategy, this);
 
 			//resize window so it looks better

@@ -12,6 +12,8 @@ namespace RobotNav.GA
 		public Point Pos { get; private set; }
 		public List<MoveDir> Dna { get; private set; }
 
+		public bool ReachedGoal = false;
+
 		public List<Point> Path { get; private set; }
 
 		public Individual(Point pos)

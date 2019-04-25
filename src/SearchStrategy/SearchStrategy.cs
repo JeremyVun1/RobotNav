@@ -12,7 +12,6 @@ namespace RobotNav
 	{
 		public FMap fMap { get; private set; }
 		protected string id;
-
 		protected Dictionary<Point, bool> closedSet;
 		public List<Point> Path { get; private set; }
 		public virtual int PathSizeOutput { get { return pathSize; } }

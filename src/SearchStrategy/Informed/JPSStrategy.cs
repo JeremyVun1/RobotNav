@@ -18,7 +18,7 @@ namespace RobotNav
 			get
 			{
 				if (Path.Count() == 0)
-					return 0;
+					return -1;
 				return gMap[Path[0]];
 			}
 		}
@@ -284,6 +284,15 @@ namespace RobotNav
 		}
 
 		//GUI DRAWS
+		public override void Draw()
+		{
+			base.Draw();
+
+			DrawOpenSet();
+
+			DrawAllParents();
+		}
+
 		protected override void DrawPath()
 		{
 			if (DebugMode.Path)
@@ -303,6 +312,30 @@ namespace RobotNav
 
 					last = curr;
 				}
+			}
+		}
+
+		private void DrawAllParents()
+		{
+			foreach (KeyValuePair<Point, Point> pair in parent)
+			{
+				Point child = pair.Key;
+				Point parent = pair.Value;
+				//draw line direction
+				SwinGame.DrawLine(Color.Red, child.X * gridW + gridW / 2, child.Y * gridH + gridH / 2, parent.X * gridW + gridW / 2, parent.Y * gridH + gridH / 2);
+			}
+		}
+
+		private void DrawOpenSet()
+		{
+			if (DebugMode.Openset)
+			{
+				for (int i = 0; i < openSet.Count(); i++)
+				{
+					DrawGridBox(openSet[i], Color.LightBlue, 1);
+				}
+
+				SwinGame.DrawText("OpenSet: " + openSet.Count(), Color.White, 20, SwinGame.ScreenHeight() - 20);
 			}
 		}
 	}

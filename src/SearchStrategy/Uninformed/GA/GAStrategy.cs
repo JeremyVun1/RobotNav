@@ -13,28 +13,30 @@ namespace RobotNav
 		private Individual[] generation;
 		private Individual[] parents;
 		private List<MasterGene> dnaPool;
-		private int n, generations, bestGeneration, fitnessMulti;
-		private double m, bestTime;
+		private int popSize, generations, bestGeneration, fitnessMulti;
+		private double mutRate, bestTime;
+		private int deepCount; // iterative deepening
 
 		private List<Point> bestPathFound;
 		public List<MoveDir> BestDNA { get; private set; }
-		private double bestDNAFitness;
-
-		public override int PathSizeOutput { get { return bestPathFound.Count() - 1; } }
 
 		public bool ValueDiversity { get; set; }
 		public bool Elite { get; set; }
+		double BestDNAFitness;
+
+		public override int PathSizeOutput { get { return bestPathFound == null ? -1 : bestPathFound.Count() - 1; } }
 
 		protected override int pathSize {
 			get {
-				if (parents[0] == null)
-					return 0;
+				Individual best = BestParent(parents);
+				if (best == null)
+					return bestPathFound == null ? -1 : bestPathFound.Count();
 
-				int result = parents[0].DNALength;
-				if (bestPathFound.Count()-1 > result)
+				int result = best.DNALength;
+				if (bestPathFound == null || bestPathFound.Count()-1 > result)
 				{
-					bestPathFound = parents[0].Path;
-					BestDNA = parents[0].Dna;
+					bestPathFound = best.Path;
+					BestDNA = best.Dna;
 					bestTime = sw.Elapsed.TotalMilliseconds;
 					bestGeneration = generations;
 				}
@@ -51,19 +53,20 @@ namespace RobotNav
 		{
 			rng = new Random(Guid.NewGuid().GetHashCode());
 
-			n = opt.popSize; // population size
-			m = opt.mutRate; // mutation rate
+			popSize = opt.popSize; // population size
+			mutRate = opt.mutRate; // mutation rate
 			fitnessMulti = opt.fitMulti; //fitness multiplier
 			ValueDiversity = opt.diversity; //whether we value candidate diversity or not
 			Elite = opt.elite; //Mix in the genes of the best path found when creating next generations
+			deepCount = 1;
 
-			parents = new Individual[Math.Max((int)(n*0.1),2)]; //parents as a fifth of the population
+			parents = new Individual[Math.Max((int)(popSize*0.1),2)]; //parents as a fifth of the population
 			dnaPool = new List<MasterGene>(); //action counter for crossovers
 			BestDNA = new List<MoveDir>();
 
 			//initialise generation
-			generation = new Individual[n];
-			for (int i = 0; i < n; i++)
+			generation = new Individual[popSize];
+			for (int i = 0; i < popSize; i++)
 			{
 				generation[i] = new Individual(fMap.Start);
 			}
@@ -79,12 +82,13 @@ namespace RobotNav
 			//keep choosing random actions until we hit a goal point
 			for (int i = 0; i < generation.Length; i++)
 			{
-				while (!CheckIfGoal(generation[i].Pos))
+				int count = 0;
+				while (!CheckIfGoal(generation[i]) && count < deepCount)
 				{
 					generation[i].Move((MoveDir)rng.Next(0, 4), fMap);
+					count++;
 				}
 			}
-			bestPathFound = generation[0].Path;
 
 			generations = 0;
 			started = true;
@@ -108,82 +112,135 @@ namespace RobotNav
 			//algorithm start
 
 			//get dna average length of the generation
-			int dnaAvgLength = 0;
-			for (int i = 0; i < generation.Count(); i++)
-				dnaAvgLength += generation[i].DNALength;
-			dnaAvgLength = dnaAvgLength / n;
+			int dnaAvgLength = AverageDnaLength(generation);
 
 			//score fitness of candidates
-			double fitnessAvg = 0.0;
 			List<ScoreCard> scores = new List<ScoreCard>();
-			for (int i = 0; i < generation.Count(); i++)
-			{
-				double fitness = Fitness(generation[i].DNALength, dnaAvgLength);
-				fitnessAvg += fitness;
-				scores.Add(new ScoreCard(i, fitness));
-			}
-			fitnessAvg = fitnessAvg / generation.Count();
+			double fitnessAvg = ScoreFitness(scores, generation, dnaAvgLength);
 
-			//elitism modifier option
-			if (Elite && BestDNA != null)
-				bestDNAFitness = Fitness(BestDNA.Count(), dnaAvgLength);
-
-			//select top 10%
+			//select top 10% of population
 			SelectParents(scores);
 
-			//calculate diversity score of all candidates relative to prior selection
-			//and add diversity score to the candidates scorecard
-			if (ValueDiversity)
-			{
-				for (int i = 0; i < n; i++)
-				{
-					double dScore = Diversity(generation[i].Dna, dnaPool, fitnessAvg);
-					scores[i].AddScore(dScore);
-				}
-
-				if (Elite && BestDNA != null)
-					bestDNAFitness += Diversity(BestDNA, dnaPool, bestDNAFitness);
-
-				//re-select top 10%
-				SelectParents(scores);
-			}
+			//calculate diversity score of all candidates relative to prior fitness selection
+			//add diversity score to all the candidate scorecards
+			ScoreDiversity(scores, fitnessAvg);
 
 			//create next generation of candidates
-			for (int i = 0; i < n; i++)
-			{
-				Individual child = new Individual(fMap.Start);
-				for (int j = 0; j < dnaPool.Count(); j++)
-				{
-					//use master dna pool until we reach the goal
-					if (CheckIfGoal(child.Pos))
-						break;
+			SpawnCandidates();
+			dnaPool.Clear();
 
-					child.Move(dnaPool[j].GetDNA(rng, m), fMap);
-				}
-
-				//if child still hasn't reachted the goal, fill out dna with random moves until it does
-				while (!CheckIfGoal(child.Pos))
-					child.Move((MoveDir)rng.Next(0, 4), fMap);
-
-				generation[i] = child;
-			}
-
-			//increment generation counter
+			//increment generation counter and iterative deepening counter
 			generations++;
+			deepCount = Math.Min(deepCount+1, 2147483647); // 32bit int max
 
 			sw.Stop();
 			return false;
 		}
 
+		private void SpawnCandidates()
+		{
+			for (int i = 0; i < popSize; i++)
+			{
+				Individual child = new Individual(fMap.Start);
+				for (int j = 0; j < dnaPool.Count(); j++)
+				{
+					//use master dna pool until we reach the goal
+					if (CheckIfGoal(child))
+						break;
+
+					child.Move(dnaPool[j].GetDNA(rng, mutRate), fMap);
+				}
+
+				//if child still hasn't reachted the goal, fill out dna with random moves until it does
+				int count = 0;
+				while (!CheckIfGoal(child) && count < deepCount)
+				{
+					child.Move((MoveDir)rng.Next(0, 4), fMap);
+					count++;
+				}
+
+				generation[i] = child;
+			}
+		}
+
+		private void ScoreDiversity(List<ScoreCard> scores, double fitnessAvg)
+		{
+			if (ValueDiversity)
+			{
+				for (int i = 0; i < popSize; i++)
+				{
+					double dScore = Diversity(generation[i].Dna, dnaPool, fitnessAvg);
+					scores[i].AddScore(dScore);
+				}
+
+				//re-select top 10%
+				SelectParents(scores);
+			}
+		}
+
+		private double ScoreFitness(List<ScoreCard> scores, Individual[] generation, int dnaAvgLength)
+		{
+			double result = 0.0;
+			int n = generation.Length;
+			for (int i = 0; i < generation.Length; i++)
+			{
+				double fitness = Fitness(generation[i].DNALength, dnaAvgLength);
+				result += fitness;
+				scores.Add(new ScoreCard(i, fitness));
+			}
+
+			//mix in our elite fitness if opted for
+			if (Elite && BestDNA != null)
+			{
+				BestDNAFitness = Fitness(BestDNA.Count(), dnaAvgLength);
+				result += BestDNAFitness;
+				n++;
+			}
+
+			return result / n;
+		}
+
+		private int AverageDnaLength(Individual[] generation)
+		{
+			int result = 0;
+			int n = popSize;
+			for (int i = 0; i < generation.Count(); i++)
+				result += generation[i].DNALength;
+
+			//mix in our elite length if opted for
+			if (Elite && BestDNA != null)
+			{
+				result += BestDNA.Count();
+				n++;
+			}
+
+			return result / n;
+		}
+
+		private Individual BestParent(Individual[] parents)
+		{
+			foreach (Individual i in parents)
+			{
+				if (i == null)
+					return null;
+
+				if (i.ReachedGoal)
+					return i;
+			}
+			return null;
+		}
+
 		private void SelectParents(List<ScoreCard> scores)
 		{
+			//sort scorecards in descending fitness score
 			scores.Sort((x, y) => y.Score.CompareTo(x.Score));
+
 			for (int i = 0; i < parents.Length; i++)
 			{
-				//populate parents with high scoring candidates
+				//choose parents
 				parents[i] = generation[scores[i].Individual];
 
-				//create master dna pool for reproduction and diversity comparison
+				//Mix parent into master dna pool
 				List<MoveDir> dna = parents[i].Dna;
 				for (int j = 0; j < dna.Count(); j++)
 				{
@@ -194,14 +251,17 @@ namespace RobotNav
 				}
 			}
 
-			// elitism - mix globally best found dna into pool
+			// mix in our elites if opted for
 			if (Elite && BestDNA != null)
 			{
 				dnaPool.Add(new MasterGene());
 
-				for(int i=0; i<BestDNA.Count(); i++)
+				for (int i = 0; i < BestDNA.Count(); i++)
 				{
-					dnaPool[dnaPool.Count() - 1].Mix(BestDNA[i], bestDNAFitness);
+					if (dnaPool.Count() <= i)
+						dnaPool.Add(new MasterGene());
+
+					dnaPool[i].Mix(BestDNA[i], BestDNAFitness);
 				}
 			}
 		}
@@ -233,12 +293,15 @@ namespace RobotNav
 		}
 
 		//goal check
-		private bool CheckIfGoal(Point p)
+		private bool CheckIfGoal(Individual i)
 		{
 			foreach (Point g in fMap.Goals)
 			{
-				if (p.Equals(g))
+				if (i.Pos.Equals(g))
+				{
+					i.ReachedGoal = true;
 					return true;
+				}
 			}
 			return false;
 		}
@@ -281,6 +344,8 @@ namespace RobotNav
 			}
 
 			int g = -1;
+			if (bestPathFound == null)
+				return;
 			foreach (Point p in bestPathFound)
 			{
 				g++;
@@ -293,7 +358,7 @@ namespace RobotNav
 		{
 			SwinGame.DrawText("Algorithm: " + id, Color.White, col[0], uiTop + 15);
 			SwinGame.DrawText("Generations: " + generations, Color.White, col[0], uiTop + 30);
-			SwinGame.DrawText("Population, Mutation: " + n + ", " + m*100 + "%", Color.White, col[0], uiTop + 45);
+			SwinGame.DrawText("Population, Mutation: " + popSize + ", " + mutRate*100 + "%", Color.White, col[0], uiTop + 45);
 			SwinGame.DrawText("Diversity, Elite: " + ValueDiversity + ", " + Elite, Color.White, col[0], uiTop + 60);
 			SwinGame.DrawText("Running time (ms): " + sw.Elapsed.TotalMilliseconds, Color.White, col[0], uiTop + 75);
 

@@ -133,9 +133,14 @@ namespace RobotNav
 
 		private void DrawOpenSet()
 		{
-			for (int i = 0; i < openSet.Count(); i++)
+			if (DebugMode.Openset)
 			{
-				DrawGridBox(openSet[i], Color.LightBlue, 1);
+				for (int i = 0; i < openSet.Count(); i++)
+				{
+					DrawGridBox(openSet[i], Color.LightBlue, 1);
+				}
+
+				SwinGame.DrawText("OpenSet: " + openSet.Count(), Color.White, 20, SwinGame.ScreenHeight() - 20);
 			}
 		}
 

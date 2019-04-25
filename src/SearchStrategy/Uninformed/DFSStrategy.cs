@@ -109,6 +109,8 @@ namespace RobotNav
 				List<Point> path = stack.ToList();
 				for (int i = 0; i < path.Count(); i++)
 					DrawGridBox(path[i], Color.LightBlue, 1);
+
+				SwinGame.DrawText("Stack Size: " + stack.Count(), Color.White, 20, SwinGame.ScreenHeight() - 20);
 			}
 		}
 	}

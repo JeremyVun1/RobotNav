@@ -46,28 +46,7 @@ namespace RobotNav
 			{
 				//find best node in open set
 				stepCount++;
-				Point lowPoint = openSet[0];
-				int lowDist = fMap[lowPoint];
-				for (int i = 0; i < openSet.Count(); i++)
-				{
-					Point lowPoint2 = openSet[i];
-					int lowDist2 = fMap[lowPoint2];
-
-					if (lowDist2 < lowDist)
-					{
-						lowPoint = lowPoint2;
-						lowDist = lowDist2;
-					}
-
-					//if two nodes have same f cost, choose the one with lowest h cost
-					if (lowDist == lowDist2)
-					{
-						if ((fMap[lowPoint] - gMap[lowPoint]) > (fMap[lowPoint2] - gMap[lowPoint2]))
-						{
-							lowPoint = lowPoint2;
-						}
-					}
-				}
+				Point lowPoint = GetBestNode(openSet);
 
 				//check if goal
 				foreach (Point g in fMap.Goals)
@@ -86,16 +65,14 @@ namespace RobotNav
 				List<Point> adj = fMap.Adjacent(lowPoint);
 				foreach (Point a in adj)
 				{
+					//f = g + h;
 					//update g scores if found better path the neighbour
-					if (gMap[a] > gMap[lowPoint] + 1)
-						gMap[a] = gMap[lowPoint] + 1;
+					if (gMap[a] > gMap[lowPoint] + 1 || gMap[a] == 0)
+						ScoreNode(a, gMap[lowPoint] + 1);
 
 					if (closedSet[a])
 						continue;
 
-					//f = g + h;
-					gMap[a] = gMap[lowPoint] + 1;
-					fMap[a] = gMap[a] + ManhattanDist(a, fMap.Goals);
 					openSet.Add(a);
 					closedSet[a] = true;
 					parent.Add(a, lowPoint);
@@ -110,6 +87,44 @@ namespace RobotNav
 			}
 			sw.Stop();
 			return false;
+		}
+
+		private void ScoreNode(Point a, int gCost)
+		{
+			gMap[a] = gCost;
+			fMap[a] = gCost + ManhattanDist(a, fMap.Goals);
+		}
+
+		//get node with lowest f value from the list
+		private Point GetBestNode(List<Point> list)
+		{
+			Point lowPoint = list[0];
+			int lowDist = fMap[lowPoint];
+			for (int i = 0; i < list.Count(); i++)
+			{
+				Point lowPoint2 = list[i];
+				int lowDist2 = fMap[lowPoint2];
+
+				if (lowDist2 < lowDist)
+				{
+					lowPoint = lowPoint2;
+					lowDist = lowDist2;
+				}
+
+				//if two nodes have same f cost, choose the one with lowest h cost
+				//preference relianility of higher g costs
+				if (lowDist == lowDist2)
+				{
+					if ((fMap[lowPoint] - gMap[lowPoint]) < (fMap[lowPoint2] - gMap[lowPoint2]))
+					{
+						lowPoint = lowPoint2;
+					}
+				}
+			}
+
+			list.Remove(lowPoint);
+
+			return lowPoint;
 		}
 
 		//lowest manhattan dist to set of points (multiple active goals)
@@ -170,6 +185,8 @@ namespace RobotNav
 			{
 				DrawGridBox(openSet[i], Color.LightBlue, 1);
 			}
+
+			SwinGame.DrawText("OpenSet: " + openSet.Count(), Color.White, 20, SwinGame.ScreenHeight() - 20);
 		}
 
 		private void DrawAllParents()
