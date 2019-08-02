@@ -6,10 +6,10 @@ Jeremy Vun
 **********
 How to Use
 **********
-Command Line format
-> RobotNav <filename> <method> <options>
+> bin/x86/Release-Windows/RobotNav.exe <map filename> <method> <options>
 
-If no method is specified, will default to BFS.
+If no method specified, will default to BFS.
+map filename is required (see data folder)
 
 **********
 Methods
