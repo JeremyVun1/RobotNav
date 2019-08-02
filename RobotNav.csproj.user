@@ -12,6 +12,6 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-Windows|x86'">
-    <StartArguments>C:\Users\elode\Desktop\robotnav\RobotNav\data\smallw.txt ga 20 0.03 2 f t 10</StartArguments>
+    <StartArguments>G:\github\RobotNav\data\testdata.txt</StartArguments>
   </PropertyGroup>
 </Project>
