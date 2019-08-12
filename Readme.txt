@@ -40,8 +40,8 @@ Example command
 Population Size: 20
 Mutation Rate: 0.04
 Fitness Multiplier: 1 (higher is more selective)
-Diversity Selection: f (do not score individual diversity from mean)
-Elitism: t (add global best to each generation)
+Diversity Selection: f (false. do not score individual diversity from mean)
+Elitism: t (true. add global best to each generation)
 Deepening Increment: 1 (rate at which depth limit increases)
 
 ============
