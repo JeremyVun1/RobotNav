@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SwinGameSDK;
 using System.IO;
 
@@ -12,16 +9,8 @@ namespace RobotNav
 	{
 		public static FMap CreateFMap(string filename)
 		{
-			//Check that file exists
-			string filePath = filename;
-			if (!File.Exists(filePath))
-			{
-				Console.WriteLine("Cannot find " + filePath);
-				return new FMap(null, new Point(0, 0), null);
-			}
-
 			//Load file and create [][] array representation
-			StreamReader file = new StreamReader(filePath);
+			StreamReader file = new StreamReader(filename);
 
 			Point dimensions = ParsePoint(file.ReadLine());
 			Point start = ParsePoint(file.ReadLine());
