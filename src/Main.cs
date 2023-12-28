@@ -1,9 +1,8 @@
 ﻿using System;
-using SwinGameSDK;
 
 namespace RobotNav
 {
-	public class GameMain
+	public static class Program
 	{
 		public static void Main(params string[] args)
 		{

@@ -1,12 +1,15 @@
 ============
 How to Use
 ============
-> bin/x86/Release-Windows/RobotNav.exe <map filename> <method> <options>
+> dotnet run <mapName> <method> <options>
+
+Example
+> dotnet run largenw BFS
 
 If no method specified, will default to BFS. Map filename is required (see data folder for example maps)
 
 ============
-Map
+Maps
 ============
 See data folder for examples.
 
@@ -32,10 +35,10 @@ JPS 	(Jump Point Search)
 ============
 Options (Genetic Algorithm)
 ============
-> RobotNav <filename> GA <Population size> <Mutation Rate> <Fitness Multiplier> <Diversity Selection> <Elitism> <deepening increment>
+> dotnet run <mapName> GA <Population size> <Mutation Rate> <Fitness Multiplier> <Diversity Selection> <Elitism> <deepening increment>
 
-Example command
-> RobotNav <filename> GA 20 0.04 1 f t 1
+Example
+> dotnet run <mapName> GA 20 0.04 1 f t 1
 
 Population Size: 20
 Mutation Rate: 0.04

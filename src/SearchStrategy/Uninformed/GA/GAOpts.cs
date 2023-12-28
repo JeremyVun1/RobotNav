@@ -1,38 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RobotNav.Extensions;
 
 namespace RobotNav
 {
 	public struct GAOpts
 	{
-		public int popSize, fitMulti, deepeningInc;
-		public double mutRate;
+		public double mutRate, popSize, fitMulti, deepeningInc;
 		public bool diversity, elite;
 
-		public GAOpts(string popSize, string mutRate, string fitMulti, string diversity, string elite, string deepeningInc)
+		public GAOpts(string[] args)
 		{
-			if (!int.TryParse(popSize, out this.popSize))
-				this.popSize = 20;
+			mutRate = args.GetValueOrDefaultAsDouble(3, 0.04);
+			popSize = args.GetValueOrDefaultAsDouble(2, 20);
+			fitMulti = args.GetValueOrDefaultAsDouble(2, 2);
+			deepeningInc = args.GetValueOrDefaultAsDouble(2, 1);
 
-			if (!double.TryParse(mutRate, out this.mutRate))
-				this.mutRate = 0.04;
-
-			if (!int.TryParse(fitMulti, out this.fitMulti))
-				this.fitMulti = 2;
-
-			if (diversity != null && diversity.ToLower() == "true")
-				this.diversity = true;
-			else this.diversity = false;
-
-			if (elite != null && elite.ToLower() == "true")
-				this.elite = true;
-			else this.elite = true;
-
-			if (!int.TryParse(deepeningInc, out this.deepeningInc))
-				this.deepeningInc = 1;
+			diversity = args.GetValueOrDefaultAsBool(2, false);
+			elite = args.GetValueOrDefaultAsBool(2, false);
 		}
 	}
 }

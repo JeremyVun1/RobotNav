@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SwinGameSDK;
 using RobotNav.GA;
 
@@ -15,7 +13,7 @@ namespace RobotNav
 		private List<MasterGene> dnaPool;
 
 		//basic options
-		private int popSize, generations, bestGeneration, fitnessMulti;
+		private double popSize, generations, bestGeneration, fitnessMulti;
 		private double mutRate, bestTime;
 
 		//modifier options
@@ -24,8 +22,8 @@ namespace RobotNav
 		double BestDNAFitness;
 
 		// iterative deepening
-		private int deepCount;
-		private int deepeningInc;
+		private double deepCount;
+		private double deepeningInc;
 
 		//track global best solutions (inter-generational)
 		private List<Point> bestPathFound;
@@ -77,7 +75,7 @@ namespace RobotNav
 			BestDNA = new List<MoveDir>();
 
 			//initialise generation
-			generation = new Individual[popSize];
+			generation = new Individual[(int)popSize];
 			for (int i = 0; i < popSize; i++)
 			{
 				generation[i] = new Individual(fMap.Start);
@@ -223,7 +221,7 @@ namespace RobotNav
 		private int AverageDnaLength(Individual[] generation)
 		{
 			int result = 0;
-			int n = popSize;
+			int n = (int)popSize;
 			for (int i = 0; i < generation.Count(); i++)
 				result += generation[i].DNALength;
 

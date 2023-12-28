@@ -8,11 +8,9 @@ namespace RobotNav
 {
 	public static class SearchStrategyFactory
 	{
-		public static SearchStrategy Create(string filename, string method, string popSize, string mutRate, string fitMulti, string diversity, string elite, string deepeningInc)
+		public static SearchStrategy Create(string filename, string method, GAOpts gaOpts)
 		{
 			method = method.ToUpper();
-
-			GAOpts opts = new GAOpts(popSize, mutRate, fitMulti, diversity, elite, deepeningInc);
 
 			switch (method)
 			{
@@ -26,7 +24,7 @@ namespace RobotNav
 					return new ASFSStrategy(MapFactory.CreateFMap(filename), MapFactory.CreateFMap(filename), "A* Fast Stack");
 				case "CUS1":
 				case "GA":
-					return new GAStrategy(MapFactory.CreateFMap(filename), "Genetic Algorithm", opts);
+					return new GAStrategy(MapFactory.CreateFMap(filename), "Genetic Algorithm", gaOpts);
 				case "CUS2":
 				case "JPS":
 					return new JPSStrategy(MapFactory.CreateFMap(filename), MapFactory.CreateFMap(filename), "JPS");
